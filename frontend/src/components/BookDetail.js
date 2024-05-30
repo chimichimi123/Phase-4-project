@@ -6,13 +6,21 @@ import ReviewForm from "./ReviewForm";
 function BookDetail() {
   const { id } = useParams();
   const [book, setBook] = useState(null);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(``)
-      .then((response) => response.json())
-      .then((data) => setBook(data));
+    fetch(`http://localhost:5000/books/${id}`)
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then((data) => setBook(data))
+      .catch((err) => setError(err.message));
   }, [id]);
 
+  if (error) return <div>Error: {error}</div>;
   if (!book) return <div>Loading...</div>;
 
   return (

@@ -1,9 +1,5 @@
 # models.py
 
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy_serializer import SerializerMixin
-from sqlalchemy.ext.associationproxy import association_proxy
-
 from config import db
 
 
@@ -28,10 +24,10 @@ class Book(db.Model):
     title = db.Column(db.String(120), nullable=False)
     author = db.Column(db.String(120), nullable=False)
     summary = db.Column(db.String(500))
-    cover_image_url = db.Column(db.String(200))  # Add cover_image_url
+    cover_image_url = db.Column(db.String(200))
     reviews = db.relationship('Review', backref='book', lazy=True)
     users = db.relationship('UserBook', backref='book', lazy=True)
-    details = db.relationship('BookDetails', backref='book', uselist=False)  # Add relationship to BookDetails
+    details = db.relationship('BookDetails', backref='book', uselist=False)
 
     def to_dict(self):
         return {
@@ -77,7 +73,7 @@ class BookDetails(db.Model):
     year = db.Column(db.Integer)
     pages = db.Column(db.Integer)
     publisher = db.Column(db.String(50))
-    description = db.Column(db.String(500))  # Ensure description field is included
+    description = db.Column(db.String(500))
 
     def to_dict(self):
         return {

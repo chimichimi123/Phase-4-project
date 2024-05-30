@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 
 # Standard library imports
-from random import randint, choice as rc
 
 # Remote library imports
 from faker import Faker
@@ -16,7 +15,7 @@ if __name__ == '__main__':
     with app.app_context():
         print("Starting seed...")
         
-        # Define book data including details
+        
 books = [
     {
         'title': 'Harry Potter and the Sorcerer\'s Stone',
@@ -46,12 +45,10 @@ books = [
             'description': '"Return to Hogwarts in this stunning edition of Harry Potter and the Prisoner of Azkaban. J.K. Rowling s complete and unabridged text is accompanied by full-color illustrations on nearly every page and eight paper-engineered interactive elements: Readers will explore the Knight Bus, reveal the Grim in a teacup, spin the Time-Turner, and more."',
         }
     },
-    # Add more books as needed
+    
 ]
 with app.app_context():
-# Insert book data and details into database
     for book_data in books:
-    # Create Book instance
         book = Book(
             title=book_data['title'],
             author=book_data['author'],
@@ -59,9 +56,8 @@ with app.app_context():
             cover_image_url=book_data['cover_image_url']
         )
         db.session.add(book)
-        db.session.flush()  # Ensure book is inserted to get its id
+        db.session.flush()
 
-        # Create BookDetails instance
         details_data = book_data.get('details', {})
         details = BookDetails(
             book_id=book.id,
@@ -73,5 +69,4 @@ with app.app_context():
         )
         db.session.add(details)
 
-    # Commit changes
     db.session.commit()

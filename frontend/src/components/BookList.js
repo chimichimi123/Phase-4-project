@@ -5,7 +5,7 @@ function BookList() {
   const [books, setBooks] = useState([]);
 
   useEffect(() => {
-    fetch("https://book-review-project-backend-db1.onrender.com/books")
+    fetch("http://127.0.0.1:5000/books")
       .then((response) => response.json())
       .then((data) => setBooks(data));
   }, []);
