@@ -2,13 +2,14 @@
 from flask import request, jsonify, Blueprint
 from models import db, User, Book, Review, UserBook, BookDetails
 
-bp = Blueprint('routes', __name__)
-
+bp = Blueprint('api', __name__)
 
 @bp.route('/books', methods=['GET', 'POST'])
 def handle_books():
     if request.method == 'POST':
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid input"}), 400
         new_book = Book(**data)
         db.session.add(new_book)
         db.session.commit()
@@ -23,6 +24,8 @@ def handle_book(id):
         return jsonify(book.to_dict())
     elif request.method == 'PUT':
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid input"}), 400
         for key, value in data.items():
             setattr(book, key, value)
         db.session.commit()
@@ -35,6 +38,8 @@ def handle_book(id):
 @bp.route('/reviews', methods=['POST'])
 def add_review():
     data = request.get_json()
+    if not data:
+        return jsonify({"error": "Invalid input"}), 400
     new_review = Review(**data)
     db.session.add(new_review)
     db.session.commit()
@@ -47,6 +52,8 @@ def handle_review(id):
         return jsonify(review.to_dict())
     elif request.method == 'PUT':
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid input"}), 400
         for key, value in data.items():
             setattr(review, key, value)
         db.session.commit()
@@ -56,11 +63,12 @@ def handle_review(id):
         db.session.commit()
         return '', 204
 
-# User Routes
 @bp.route('/users', methods=['GET', 'POST'])
 def handle_users():
     if request.method == 'POST':
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid input"}), 400
         new_user = User(**data)
         db.session.add(new_user)
         db.session.commit()
@@ -75,6 +83,8 @@ def handle_user(id):
         return jsonify(user.to_dict())
     elif request.method == 'PUT':
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid input"}), 400
         for key, value in data.items():
             setattr(user, key, value)
         db.session.commit()
@@ -83,11 +93,13 @@ def handle_user(id):
         db.session.delete(user)
         db.session.commit()
         return '', 204
-    
+
 @bp.route('/bookdetails', methods=['GET', 'POST'])
 def handle_bookdetails():
     if request.method == 'POST':
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid input"}), 400
         new_details = BookDetails(**data)
         db.session.add(new_details)
         db.session.commit()
@@ -102,6 +114,8 @@ def handle_bookdetail(id):
         return jsonify(details.to_dict())
     elif request.method == 'PUT':
         data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid input"}), 400
         for key, value in data.items():
             setattr(details, key, value)
         db.session.commit()
@@ -110,7 +124,6 @@ def handle_bookdetail(id):
         db.session.delete(details)
         db.session.commit()
         return '', 204
-
 
 def register_routes(app):
     app.register_blueprint(bp)
