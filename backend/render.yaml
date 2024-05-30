@@ -13,8 +13,8 @@ services:
           name: book-review-project-db
           property: connectionString
       - key: SECRET_KEY
-        genereateValue: true
+          generateValue: true 
 
 databases:
-  - name: book-review-db
+  - name: book-review-project-db
     plan: free
