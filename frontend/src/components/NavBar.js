@@ -12,6 +12,9 @@ function NavBar() {
         <li>
           <Link to="/profile">Profile</Link>
         </li>
+        <li>
+          <Link to="/booklist">Book List</Link>
+        </li>
       </ul>
     </nav>
   );
