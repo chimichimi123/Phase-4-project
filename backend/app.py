@@ -3,15 +3,15 @@
 # Standard library imports
 
 # Remote library imports
-from flask import request
+from flask import request, Flask
 from flask_restful import Resource
 
 # Local imports
-from config import app, db, api
-from routes import register_routes
-# Add your model imports
+from config import db, api, create_app
 
-register_routes(app)
+app = create_app()
+
+# Add your model imports
 
 # Views go here!
 

@@ -1,14 +1,11 @@
 # routes.py
-from flask import Flask, request, jsonify, Blueprint
+from flask import request, jsonify, Blueprint
 from models import db, User, Book, Review, UserBook
 
 bp = Blueprint('routes', __name__)
 
-app = Flask(__name__)
-app.config.from_object('config')
-db.init_app(app)
 
-@app.route('/books', methods=['GET', 'POST'])
+@bp.route('/books', methods=['GET', 'POST'])
 def handle_books():
     if request.method == 'POST':
         data = request.get_json()
@@ -19,7 +16,7 @@ def handle_books():
     books = Book.query.all()
     return jsonify([book.to_dict() for book in books])
 
-@app.route('/books/<int:id>', methods=['GET', 'PUT', 'DELETE'])
+@bp.route('/books/<int:id>', methods=['GET', 'PUT', 'DELETE'])
 def handle_book(id):
     book = Book.query.get_or_404(id)
     if request.method == 'GET':

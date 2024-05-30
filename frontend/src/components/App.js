@@ -1,10 +1,10 @@
 // src/App.js
 import React from "react";
 import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
-import NavBar from "./components/NavBar";
-import BookList from "./components/BookList";
-import BookDetail from "./components/BookDetail";
-import UserProfile from "./components/UserProfile";
+import NavBar from "./NavBar";
+import BookList from "./BookList";
+import BookDetail from "./BookDetail.js";
+import UserProfile from "./UserProfile";
 
 function App() {
   return (
