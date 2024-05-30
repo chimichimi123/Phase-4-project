@@ -4,8 +4,8 @@ services:
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn -w 4 -b 0.0.0.0:5555 backend.app:app
-    port: 5555
+    startCommand: gunicorn -w 4 -b 0.0.0.0:$PORT backend.app:app
+    port: 5000
     envVars:
       - key: FLASK_ENV
         value: production
