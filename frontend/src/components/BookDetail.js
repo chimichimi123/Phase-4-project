@@ -8,7 +8,7 @@ function BookDetail() {
   const [book, setBook] = useState(null);
 
   useEffect(() => {
-    fetch(`/api/books/${id}`)
+    fetch(``)
       .then((response) => response.json())
       .then((data) => setBook(data));
   }, [id]);
