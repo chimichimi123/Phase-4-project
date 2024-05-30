@@ -4,9 +4,12 @@ from flask_cors import CORS
 
 # Local imports
 from config import create_app
+from routes import register_routes
 
 app = create_app()
 CORS(app)
+
+register_routes(app)
 
 @app.route('/')
 def index():

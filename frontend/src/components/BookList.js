@@ -5,7 +5,7 @@ function BookList() {
   const [books, setBooks] = useState([]);
 
   useEffect(() => {
-    fetch("https://book-review-project-backend.onrender.com/books")
+    fetch("https://book-review-project-backend-db1.onrender.com/books")
       .then((response) => response.json())
       .then((data) => setBooks(data));
   }, []);
