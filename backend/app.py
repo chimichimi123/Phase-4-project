@@ -1,8 +1,7 @@
 #app.py
 
 # Remote library imports
-from flask import Flask, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
+from flask import request, jsonify
 from flask_cors import CORS
 from models import db, User, Book, Review, BookDetails
 
