@@ -132,7 +132,7 @@ def handle_bookdetail(id):
         return '', 204
 
 def register_routes(app):
-    app.register_blueprint(book_details_bp)
-    app.register_blueprint(user_bp)
     app.register_blueprint(book_bp)
     app.register_blueprint(review_bp)
+    app.register_blueprint(user_bp)
+    app.register_blueprint(book_details_bp)

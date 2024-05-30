@@ -1,7 +1,5 @@
 # config.py
 
-# config.py
-
 # Remote library imports
 import os
 from flask import Flask
