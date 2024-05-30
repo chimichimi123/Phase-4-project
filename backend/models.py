@@ -27,14 +27,19 @@ class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(120), nullable=False)
     author = db.Column(db.String(120), nullable=False)
+    summary = db.Column(db.String(500))
+    cover_image_url = db.Column(db.String(200))  # Add cover_image_url
     reviews = db.relationship('Review', backref='book', lazy=True)
     users = db.relationship('UserBook', backref='book', lazy=True)
+    details = db.relationship('BookDetails', backref='book', uselist=False)  # Add relationship to BookDetails
 
     def to_dict(self):
         return {
             'id': self.id,
             'title': self.title,
             'author': self.author,
+            'summary': self.summary,
+            'cover_image_url': self.cover_image_url,
         }
 
 class Review(db.Model):
@@ -63,4 +68,24 @@ class UserBook(db.Model):
             'user_id': self.user_id,
             'book_id': self.book_id,
             'role': self.role,
+        }
+        
+class BookDetails(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
+    genre = db.Column(db.String(50))
+    year = db.Column(db.Integer)
+    pages = db.Column(db.Integer)
+    publisher = db.Column(db.String(50))
+    description = db.Column(db.String(500))  # Ensure description field is included
+
+    def to_dict(self):
+        return {
+            'id': self.id,
+            'book_id': self.book_id,
+            'genre': self.genre,
+            'year': self.year,
+            'pages': self.pages,
+            'publisher': self.publisher,
+            'description': self.description,
         }
