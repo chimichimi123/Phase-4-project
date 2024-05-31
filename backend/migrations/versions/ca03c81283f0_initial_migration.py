@@ -1,8 +1,8 @@
 """Initial migration
 
-Revision ID: 0850fefbc8c0
+Revision ID: ca03c81283f0
 Revises: 
-Create Date: 2024-05-30 15:37:55.167952
+Create Date: 2024-05-31 05:24:31.350859
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '0850fefbc8c0'
+revision = 'ca03c81283f0'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -24,12 +24,17 @@ def upgrade():
     sa.Column('author', sa.String(length=120), nullable=False),
     sa.Column('summary', sa.String(length=500), nullable=True),
     sa.Column('cover_image_url', sa.String(length=200), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('username', sa.String(length=80), nullable=False),
     sa.Column('email', sa.String(length=120), nullable=False),
+    sa.Column('password_hash', sa.String(length=128), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.PrimaryKeyConstraint('id'),
     sa.UniqueConstraint('email'),
     sa.UniqueConstraint('username')
@@ -42,14 +47,19 @@ def upgrade():
     sa.Column('pages', sa.Integer(), nullable=True),
     sa.Column('publisher', sa.String(length=50), nullable=True),
     sa.Column('description', sa.String(length=500), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.ForeignKeyConstraint(['book_id'], ['book.id'], name=op.f('fk_book_details_book_id_book')),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_table('review',
     sa.Column('id', sa.Integer(), nullable=False),
-    sa.Column('content', sa.String(length=200), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('book_id', sa.Integer(), nullable=False),
+    sa.Column('rating', sa.Integer(), nullable=False),
+    sa.Column('comment', sa.String(length=500), nullable=True),
+    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.ForeignKeyConstraint(['book_id'], ['book.id'], name=op.f('fk_review_book_id_book')),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], name=op.f('fk_review_user_id_user')),
     sa.PrimaryKeyConstraint('id')
@@ -59,6 +69,8 @@ def upgrade():
     sa.Column('user_id', sa.Integer(), nullable=False),
     sa.Column('book_id', sa.Integer(), nullable=False),
     sa.Column('role', sa.String(length=50), nullable=True),
+    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
+    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=True),
     sa.ForeignKeyConstraint(['book_id'], ['book.id'], name=op.f('fk_user_book_book_id_book')),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], name=op.f('fk_user_book_user_id_user')),
     sa.PrimaryKeyConstraint('id')
