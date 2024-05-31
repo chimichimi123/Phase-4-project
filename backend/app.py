@@ -1,19 +1,25 @@
-#app.py
+# app.py
 
-# Remote library imports
-from flask_cors import CORS
-from flask_restful import Api
+from flask import Flask
+from config import db, DATABASE_URI
+from routes import setup_routes
 
+def create_app():
+    """Initialize the core application."""
+    app = Flask(__name__)
+    app.secret_key = 'super secret key'
 
-# Local imports
-from config import create_app
-from routes import api_bp
+    app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URI
+    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.json.compact = False
 
-app = create_app()
-CORS(app)
-api = Api(app)
+    db.init_app(app)
 
-app.register_blueprint(api_bp, url_prefix='/api')
+    # Initialize routes
+    setup_routes(app)
+
+    return app
 
 if __name__ == '__main__':
+    app = create_app()
     app.run(port=5000, debug=True)

@@ -1,25 +1,20 @@
-# models.py
-
 from config import db
-from sqlalchemy import func
-from sqlalchemy import CheckConstraint
+from sqlalchemy import func, CheckConstraint
 from flask_bcrypt import generate_password_hash, check_password_hash
 
-
-# Models go here!
 
 class TimestampMixin:
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_at = db.Column(db.DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
+
 class User(db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     reviews = db.relationship('Review', backref='user', lazy=True)
     books = db.relationship('UserBook', backref='user', lazy=True)
-    
+
     @property
     def password(self):
         raise AttributeError('password is not a readable attribute')
@@ -30,13 +25,15 @@ class User(db.Model, TimestampMixin):
 
     def verify_password(self, password):
         return check_password_hash(self.password_hash, password)
-    
+
     def to_dict(self):
         return {
             'id': self.id,
             'username': self.username,
-            'email': self.email,
+            'reviews': [review.to_dict() for review in self.reviews],
+            'books': [book.to_dict() for book in self.books]
         }
+
 
 class Book(db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -55,9 +52,11 @@ class Book(db.Model, TimestampMixin):
             'author': self.author,
             'summary': self.summary,
             'cover_image_url': self.cover_image_url,
-            'details': self.details.to_dict() if self.details else None,
             'reviews': [review.to_dict() for review in self.reviews],
+            'users': [user.to_dict() for user in self.users],
+            'details': self.details.to_dict() if self.details else None
         }
+
 
 class Review(db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -72,8 +71,9 @@ class Review(db.Model, TimestampMixin):
             'book_id': self.book_id,
             'rating': self.rating,
             'comment': self.comment,
-            'user': self.user.to_dict() if self.user else None,
+            'user': self.user.to_dict() if self.user else None
         }
+
 
 class UserBook(db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -86,9 +86,10 @@ class UserBook(db.Model, TimestampMixin):
             'id': self.id,
             'user_id': self.user_id,
             'book_id': self.book_id,
-            'role': self.role,
+            'role': self.role
         }
-        
+
+
 class BookDetails(db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
     book_id = db.Column(db.Integer, db.ForeignKey('book.id'), nullable=False)
@@ -106,5 +107,5 @@ class BookDetails(db.Model, TimestampMixin):
             'year': self.year,
             'pages': self.pages,
             'publisher': self.publisher,
-            'description': self.description,
+            'description': self.description
         }

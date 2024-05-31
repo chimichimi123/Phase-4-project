@@ -8,11 +8,22 @@ function ReviewForm({ bookId }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Send data to backend API for creating a review
-    console.log("Submitting review:", { rating, comment, bookId });
-    // Clear form fields after submission
-    setRating("");
-    setComment("");
+    fetch("/reviews", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ rating, comment, bookId }),
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log("Success:", data);
+        setRating("");
+        setComment("");
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
   };
 
   return (

@@ -15,8 +15,7 @@ if __name__ == '__main__':
     fake = Faker()
     with app.app_context():
         print("Starting seed...")
-        
-        
+
 books = [
     {
         'title': 'Harry Potter and the Sorcerer\'s Stone',
@@ -46,7 +45,6 @@ books = [
             'description': '"Return to Hogwarts in this stunning edition of Harry Potter and the Prisoner of Azkaban. J.K. Rowling s complete and unabridged text is accompanied by full-color illustrations on nearly every page and eight paper-engineered interactive elements: Readers will explore the Knight Bus, reveal the Grim in a teacup, spin the Time-Turner, and more."',
         }
     },
-    
 ]
 
 def get_or_create(session, model, **kwargs):
@@ -58,17 +56,25 @@ def get_or_create(session, model, **kwargs):
         session.add(instance)
         session.commit()
         return instance
-    
+
 with app.app_context():
     hashed_password = generate_password_hash('password').decode('utf-8')
-    
-    
+
     user = User(
         username='username',
-        email='user@example.com',
         password_hash=hashed_password
     )
+    db.session.add(user)
+    db.session.commit()
+
     
+    for _ in range(5):
+        fake_username = fake.user_name()
+        fake_email = fake.email()
+        fake_password_hash = hashed_password
+        fake_user = User(username=fake_username, email=fake_email, password_hash=fake_password_hash)
+        db.session.add(fake_user)
+
     for book_data in books:
         book = Book(
             title=book_data['title'],
@@ -79,7 +85,7 @@ with app.app_context():
         db.session.add(book)
         db.session.flush()
 
-        details_data = book_data.get('details', {})  # Ensure 'details' key exists
+        details_data = book_data.get('details', {})
         if details_data:
             details = BookDetails(
                 book_id=book.id,
