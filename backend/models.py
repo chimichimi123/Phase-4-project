@@ -7,6 +7,10 @@ class TimestampMixin:
     created_at = db.Column(db.DateTime(timezone=True), server_default=func.now())
     updated_at = db.Column(db.DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
 
+user_books = db.Table('user_books',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id'), primary_key=True),
+    db.Column('book_id', db.Integer, db.ForeignKey('book.id'), primary_key=True)
+)
 
 class User(db.Model, TimestampMixin):
     id = db.Column(db.Integer, primary_key=True)
@@ -14,6 +18,7 @@ class User(db.Model, TimestampMixin):
     password_hash = db.Column(db.String(128), nullable=False)
     reviews = db.relationship('Review', backref='user', lazy=True)
     books = db.relationship('UserBook', backref='user', lazy=True)
+    favorite_books = db.relationship('Book', secondary=user_books, backref='favorited_by')
 
     @property
     def password(self):

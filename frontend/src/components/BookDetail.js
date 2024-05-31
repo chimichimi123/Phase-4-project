@@ -6,9 +6,10 @@ function BookDetail() {
   const { id } = useParams();
   const [book, setBook] = useState(null);
   const [error, setError] = useState(null);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const userId = 1;
 
   useEffect(() => {
-    // Fetch basic book information from the /books endpoint
     fetch(`/books/${id}`)
       .then((response) => {
         if (!response.ok) {
@@ -17,7 +18,6 @@ function BookDetail() {
         return response.json();
       })
       .then((basicBookData) => {
-        // Set basic book information to the state
         setBook({
           id: basicBookData.id,
           title: basicBookData.title,
@@ -26,7 +26,6 @@ function BookDetail() {
           cover_image_url: basicBookData.cover_image_url,
         });
 
-        // Fetch additional details from the /bookdetails/${id} endpoint
         fetch(`/bookdetails/${id}`)
           .then((response) => {
             if (!response.ok) {
@@ -35,7 +34,6 @@ function BookDetail() {
             return response.json();
           })
           .then((detailsData) => {
-            // Merge additional details with basic book information
             setBook((prevBook) => ({
               ...prevBook,
               genre: detailsData.genre,
@@ -49,6 +47,26 @@ function BookDetail() {
       })
       .catch((err) => setError(err.message));
   }, [id]);
+
+  const handleFavoriteClick = () => {
+    fetch(`/users/favorite`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ userId, bookId: id }),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+      })
+      .then(() => {
+        setIsFavorite(true);
+      })
+      .catch((err) => setError(err.message));
+  };
 
   if (error) return <div>Error: {error}</div>;
   if (!book) return <div>Loading...</div>;
@@ -65,6 +83,10 @@ function BookDetail() {
       <p>Pages: {book.pages || "Unavailable"}</p>
       <p>Publisher: {book.publisher || "Unavailable"}</p>
       <p>Description: {book.description || "Unavailable"}</p>
+
+      <button onClick={handleFavoriteClick} disabled={isFavorite}>
+        {isFavorite ? "Added to Favorites" : "Add to Favorites"}
+      </button>
 
       <h2>Reviews</h2>
       <ul>

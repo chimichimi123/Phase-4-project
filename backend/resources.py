@@ -1,44 +1,8 @@
 from flask import request, jsonify, session
-from functools import wraps
-from flask_restful import Resource
+from flask_restful import Resource, reqparse
 from models import User, Book, Review, BookDetails
 from flask_bcrypt import generate_password_hash
-from werkzeug.security import check_password_hash
 from config import db
-import jwt
-from datetime import datetime, timedelta
-
-SECRET_KEY = 'super secret key'
-
-
-def token_required(func):
-    @wraps(func)
-    def decorated(*args, **kwargs):
-        token = None
-
-        if 'Authorization' in request.headers:
-            token_header = request.headers['Authorization']
-            token_parts = token_header.split()
-            
-            if len(token_parts) == 2 and token_parts[0] == 'Bearer':
-                token = token_parts[1]
-        
-        if not token:
-            return jsonify({'message': 'Token is missing'}), 401
-
-        try:
-            payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
-            current_user = User.query.get(payload['user_id'])
-        except jwt.ExpiredSignatureError:
-            return jsonify({'message': 'Token has expired'}), 401
-        except jwt.InvalidTokenError:
-            return jsonify({'message': 'Invalid token'}), 401
-        
-        request.current_user = current_user
-        
-        return func(*args, **kwargs)
-
-    return decorated
 
 class BookResource(Resource):
     def get(self, id=None):
@@ -104,7 +68,7 @@ class UserResource(Resource):
     def post(self):
         data = request.get_json()
         hashed_password = generate_password_hash(data['password']).decode('utf-8')
-        new_user = User(username=data['username'], password_hash=hashed_password)
+        new_user = User(username=data['username'], email=data['email'], password_hash=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         return jsonify(new_user.to_dict()), 201
@@ -139,26 +103,29 @@ class BookDetailsResource(Resource):
         db.session.commit()
         return '', 204
     
-    
-class Login(Resource):
+class FavoriteBookResource(Resource):
+    parser = reqparse.RequestParser()
+    parser.add_argument('userId', type=int, required=True, help="User ID is required")
+    parser.add_argument('bookId', type=int, required=True, help="Book ID is required")
+
     def post(self):
-        data = request.get_json()
-        user = User.query.filter_by(username=data['username']).first()
+        data = FavoriteBookResource.parser.parse_args()
+        user_id = data['userId']
+        book_id = data['bookId']
 
-        # Check if user exists and password is correct
-        if user and check_password_hash(user.password_hash, data['password']):
-            # Generate JWT token
-            token_payload = {
-                'user_id': user.id,
-                'exp': datetime.utcnow() + timedelta(days=1)
-            }
-            token = jwt.encode(token_payload, SECRET_KEY, algorithm='HS256')
+        user = User.query.get(user_id)
+        book = Book.query.get(book_id)
 
-            # Return token to the client
-            return jsonify({'token': token}), 200
+        if not user or not book:
+            return {'error': 'User or Book not found'}, 404
 
-        # Return error message for invalid credentials
-        return {"message": "Invalid username or password"}, 401
+        if book in user.favorite_books:
+            return {'message': 'Book already in favorites'}, 400
+
+        user.favorite_books.append(book)
+        db.session.commit()
+
+        return {'message': 'Book added to favorites'}, 200
 
 
 class Logout(Resource):
@@ -180,17 +147,26 @@ class Signup(Resource):
         if not data:
             return {"error": "Invalid input"}, 400
 
+        # Extract user data
         username = data.get('username')
+        email = data.get('email')
         password = data.get('password')
 
+        # Check if username or email already exists
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             return {"error": "Username already exists"}, 409
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email:
+            return {"error": "Email already exists"}, 409
 
+        # Hash the password
         hashed_password = generate_password_hash(password).decode('utf-8')
 
-        new_user = User(username=username, password_hash=hashed_password)
+        # Create a new user with hashed password
+        new_user = User(username=username, email=email, password_hash=hashed_password)
 
+        # Add the user to the database
         db.session.add(new_user)
         db.session.commit()
 

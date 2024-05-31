@@ -4,7 +4,6 @@ function UserProfile() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // Fetch user data from backend API
     fetch("/users")
       .then((response) => response.json())
       .then((data) => setUser(data));
