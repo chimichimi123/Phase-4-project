@@ -147,12 +147,10 @@ class Signup(Resource):
         if not data:
             return {"error": "Invalid input"}, 400
 
-        # Extract user data
         username = data.get('username')
         email = data.get('email')
         password = data.get('password')
 
-        # Check if username or email already exists
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             return {"error": "Username already exists"}, 409
@@ -160,13 +158,10 @@ class Signup(Resource):
         if existing_email:
             return {"error": "Email already exists"}, 409
 
-        # Hash the password
         hashed_password = generate_password_hash(password).decode('utf-8')
 
-        # Create a new user with hashed password
         new_user = User(username=username, email=email, password_hash=hashed_password)
 
-        # Add the user to the database
         db.session.add(new_user)
         db.session.commit()
 
