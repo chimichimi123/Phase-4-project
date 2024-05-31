@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { useHistory } from "react-router-dom";
 import axios from "axios";
+import { Link } from "react-router-dom";
 
 const Login = () => {
   const history = useHistory();
@@ -20,7 +21,11 @@ const Login = () => {
     e.preventDefault();
     try {
       const response = await axios.post("/login", formData);
-      history.push("/");
+      const user = response.data.user;
+      history.push({
+        pathname: "/user-profile",
+        state: { user: user },
+      });
     } catch (error) {
       console.error("Login failed:", error);
     }
@@ -51,6 +56,9 @@ const Login = () => {
           />
         </div>
         <button type="submit">Login</button>
+        <li>
+          <Link to="/signup">Click Here to Signup</Link>
+        </li>
       </form>
     </div>
   );

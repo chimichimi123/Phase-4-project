@@ -6,9 +6,8 @@
 from faker import Faker
 
 # Local imports
-from app import app
-from config import db
-from models import Book, BookDetails, User
+from config import db, app
+from models import Book, BookDetails, User, Review
 from flask_bcrypt import generate_password_hash
 
 if __name__ == '__main__':
@@ -96,5 +95,18 @@ with app.app_context():
                 description=details_data.get('description')
             )
             db.session.add(details)
+        
+        for _ in range(3):
+            fake_rating = fake.random_int(min=1, max=5)
+            fake_comment = fake.text()
+            fake_user_id = fake.random_element(User.query.all()).id
+            
+            review = Review(
+                book_id=book.id,
+                rating=fake_rating,
+                comment=fake_comment,
+                user_id=fake_user_id
+            )
+            db.session.add(review)
 
     db.session.commit()

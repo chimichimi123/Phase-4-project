@@ -1,7 +1,7 @@
 from flask import request, jsonify, session
-from flask_restful import Resource, reqparse
+from flask_restful import Resource
 from models import User, Book, Review, BookDetails
-from flask_bcrypt import generate_password_hash
+from flask_bcrypt import generate_password_hash, check_password_hash
 from config import db
 
 class BookResource(Resource):
@@ -68,7 +68,7 @@ class UserResource(Resource):
     def post(self):
         data = request.get_json()
         hashed_password = generate_password_hash(data['password']).decode('utf-8')
-        new_user = User(username=data['username'], email=data['email'], password_hash=hashed_password)
+        new_user = User(username=data['username'], password_hash=hashed_password)
         db.session.add(new_user)
         db.session.commit()
         return jsonify(new_user.to_dict()), 201
@@ -103,29 +103,17 @@ class BookDetailsResource(Resource):
         db.session.commit()
         return '', 204
     
-class FavoriteBookResource(Resource):
-    parser = reqparse.RequestParser()
-    parser.add_argument('userId', type=int, required=True, help="User ID is required")
-    parser.add_argument('bookId', type=int, required=True, help="Book ID is required")
-
+class Login(Resource):
     def post(self):
-        data = FavoriteBookResource.parser.parse_args()
-        user_id = data['userId']
-        book_id = data['bookId']
+        data = request.get_json()
+        user = User.query.filter_by(username=data['username']).first()
 
-        user = User.query.get(user_id)
-        book = Book.query.get(book_id)
+        if user and check_password_hash(user.password_hash, data['password']):
+            session['logged_in'] = True
+            session['user_id'] = user.id
+            return jsonify({"message": "Login successful", "user": user.to_dict()}), 200
 
-        if not user or not book:
-            return {'error': 'User or Book not found'}, 404
-
-        if book in user.favorite_books:
-            return {'message': 'Book already in favorites'}, 400
-
-        user.favorite_books.append(book)
-        db.session.commit()
-
-        return {'message': 'Book added to favorites'}, 200
+        return jsonify({"message": "Invalid username or password"}), 401
 
 
 class Logout(Resource):
@@ -148,19 +136,15 @@ class Signup(Resource):
             return {"error": "Invalid input"}, 400
 
         username = data.get('username')
-        email = data.get('email')
         password = data.get('password')
 
         existing_user = User.query.filter_by(username=username).first()
         if existing_user:
             return {"error": "Username already exists"}, 409
-        existing_email = User.query.filter_by(email=email).first()
-        if existing_email:
-            return {"error": "Email already exists"}, 409
 
         hashed_password = generate_password_hash(password).decode('utf-8')
 
-        new_user = User(username=username, email=email, password_hash=hashed_password)
+        new_user = User(username=username, password_hash=hashed_password)
 
         db.session.add(new_user)
         db.session.commit()

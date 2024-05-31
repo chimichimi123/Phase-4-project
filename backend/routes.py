@@ -1,6 +1,6 @@
 from flask_restful import Api
 from flask_cors import CORS
-from resources import BookResource, ReviewResource, UserResource, BookDetailsResource, Logout, CheckSession, Signup, FavoriteBookResource
+from resources import BookResource, ReviewResource, UserResource, BookDetailsResource, Logout, CheckSession, Signup, Login
 
 def setup_routes(app):
     api = Api(app)
@@ -14,7 +14,7 @@ def setup_routes(app):
     api.add_resource(Logout, '/logout')
     api.add_resource(CheckSession, '/checksession')
     api.add_resource(Signup, '/signup')
-    api.add_resource(FavoriteBookResource, '/users/favorite')
+    api.add_resource(Login, '/login')
 
 
     
