@@ -1,4 +1,5 @@
 from flask import request, jsonify, session
+from functools import wraps
 from flask_restful import Resource
 from models import User, Book, Review, BookDetails
 from flask_bcrypt import generate_password_hash
@@ -8,6 +9,36 @@ import jwt
 from datetime import datetime, timedelta
 
 SECRET_KEY = 'super secret key'
+
+
+def token_required(func):
+    @wraps(func)
+    def decorated(*args, **kwargs):
+        token = None
+
+        if 'Authorization' in request.headers:
+            token_header = request.headers['Authorization']
+            token_parts = token_header.split()
+            
+            if len(token_parts) == 2 and token_parts[0] == 'Bearer':
+                token = token_parts[1]
+        
+        if not token:
+            return jsonify({'message': 'Token is missing'}), 401
+
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=['HS256'])
+            current_user = User.query.get(payload['user_id'])
+        except jwt.ExpiredSignatureError:
+            return jsonify({'message': 'Token has expired'}), 401
+        except jwt.InvalidTokenError:
+            return jsonify({'message': 'Invalid token'}), 401
+        
+        request.current_user = current_user
+        
+        return func(*args, **kwargs)
+
+    return decorated
 
 class BookResource(Resource):
     def get(self, id=None):
