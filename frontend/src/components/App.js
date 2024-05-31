@@ -5,6 +5,8 @@ import NavBar from "./NavBar";
 import BookList from "./BookList";
 import BookDetail from "./BookDetail";
 import UserProfile from "./UserProfile";
+import Login from "./Login";
+import SignUpForm from "./SignupForm";
 
 function App() {
   return (
@@ -12,9 +14,11 @@ function App() {
       <Router>
         <NavBar />
         <Switch>
-          <Route exact path="/" component={BookList} />
-          <Route path="/book/:id" component={BookDetail} />
+          <Route exact path="/books" component={BookList} />
+          <Route path="/bookdetails/:id" component={BookDetail} />
           <Route path="/profile" component={UserProfile} />
+          <Route path="/login" component={Login} />
+          <Route path="/signup" component={SignUpForm} />
         </Switch>
       </Router>
     </div>

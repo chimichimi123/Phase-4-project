@@ -1,36 +1,58 @@
 # resources.py
 
-from flask import request, jsonify
-from flask_restful import Resource
+from flask import request, jsonify, session
+from flask_restful import Resource, reqparse, marshal_with, fields
 from models import db, User, Book, Review, BookDetails
+from flask_bcrypt import generate_password_hash
+
+book_fields = {
+    'id': fields.Integer,
+    'title': fields.String,
+    'author': fields.String,
+    'summary': fields.String,
+    'cover_image_url': fields.String,
+}
 
 class BookResource(Resource):
+    @marshal_with(book_fields)
     def get(self, id=None):
         if id:
             book = Book.query.get_or_404(id)
-            return jsonify(book.to_dict())
+            return book
         else:
             books = Book.query.all()
-            return jsonify([book.to_dict() for book in books])
+            return books
 
+    @marshal_with(book_fields)
     def post(self):
-        data = request.get_json()
-        if not data:
-            return {"error": "Invalid input"}, 400
+        parser = reqparse.RequestParser()
+        parser.add_argument('title', type=str, required=True)
+        parser.add_argument('author', type=str, required=True)
+        parser.add_argument('summary', type=str)
+        parser.add_argument('cover_image_url', type=str)
+        data = parser.parse_args()
+
         new_book = Book(**data)
         db.session.add(new_book)
         db.session.commit()
-        return jsonify(new_book.to_dict()), 201
+        return new_book, 201
 
+    @marshal_with(book_fields)
     def put(self, id):
         book = Book.query.get_or_404(id)
-        data = request.get_json()
-        if not data:
-            return {"error": "Invalid input"}, 400
+        parser = reqparse.RequestParser()
+        parser.add_argument('title', type=str)
+        parser.add_argument('author', type=str)
+        parser.add_argument('summary', type=str)
+        parser.add_argument('cover_image_url', type=str)
+        data = parser.parse_args()
+
         for key, value in data.items():
-            setattr(book, key, value)
+            if value is not None:
+                setattr(book, key, value)
+        
         db.session.commit()
-        return jsonify(book.to_dict())
+        return book
 
     def delete(self, id):
         book = Book.query.get_or_404(id)
@@ -112,6 +134,7 @@ class BookDetailsResource(Resource):
             details = BookDetails.query.get_or_404(id)
             return jsonify(details.to_dict())
         else:
+            # Handle request to fetch all book details if ID is not provided
             details = BookDetails.query.all()
             return jsonify([details.to_dict() for details in details])
 
@@ -140,4 +163,55 @@ class BookDetailsResource(Resource):
         db.session.commit()
         return '', 204
 
+class Login(Resource):
+    def post(self):
+        username = request.json.get('username')
+        user = User.query.filter_by(username=username).first()
+        if user:
+            session['user_id'] = user.id
+            return {'id': user.id, 'username': user.username}, 200
+        return {'message': 'User not found'}, 404
 
+class Logout(Resource):
+    def delete(self):
+        session.pop('user_id', None)
+        return {}, 204
+
+class CheckSession(Resource):
+    def get(self):
+        user_id = session.get('user_id')
+        if user_id:
+            user = User.query.get(user_id)
+            return {'id': user.id, 'username': user.username}, 200
+        return {}, 401
+
+class Signup(Resource):
+    def post(self):
+        data = request.get_json()
+        if not data:
+            return {"error": "Invalid input"}, 400
+
+        # Extract user data
+        username = data.get('username')
+        email = data.get('email')
+        password = data.get('password')
+
+        # Check if username or email already exists
+        existing_user = User.query.filter_by(username=username).first()
+        if existing_user:
+            return {"error": "Username already exists"}, 409
+        existing_email = User.query.filter_by(email=email).first()
+        if existing_email:
+            return {"error": "Email already exists"}, 409
+
+        # Hash the password
+        hashed_password = generate_password_hash(password).decode('utf-8')
+
+        # Create a new user with hashed password
+        new_user = User(username=username, email=email, password_hash=hashed_password)
+
+        # Add the user to the database
+        db.session.add(new_user)
+        db.session.commit()
+
+        return jsonify(new_user.to_dict()), 201

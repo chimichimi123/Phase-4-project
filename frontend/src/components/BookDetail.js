@@ -1,4 +1,3 @@
-// src/components/BookDetail.js
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import ReviewForm from "./ReviewForm";
@@ -9,14 +8,45 @@ function BookDetail() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    fetch(`http://localhost:5000/books/${id}`)
+    // Fetch basic book information from the /books endpoint
+    fetch(`/books/${id}`)
       .then((response) => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         return response.json();
       })
-      .then((data) => setBook(data))
+      .then((basicBookData) => {
+        // Set basic book information to the state
+        setBook({
+          id: basicBookData.id,
+          title: basicBookData.title,
+          author: basicBookData.author,
+          summary: basicBookData.summary,
+          cover_image_url: basicBookData.cover_image_url,
+        });
+
+        // Fetch additional details from the /bookdetails/${id} endpoint
+        fetch(`/bookdetails/${id}`)
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+          })
+          .then((detailsData) => {
+            // Merge additional details with basic book information
+            setBook((prevBook) => ({
+              ...prevBook,
+              genre: detailsData.genre,
+              year: detailsData.year,
+              pages: detailsData.pages,
+              publisher: detailsData.publisher,
+              description: detailsData.description,
+            }));
+          })
+          .catch((err) => setError(err.message));
+      })
       .catch((err) => setError(err.message));
   }, [id]);
 
@@ -26,20 +56,29 @@ function BookDetail() {
   return (
     <div>
       <h1>{book.title}</h1>
-      <p>Author: {book.author}</p>
-      <p>Genre: {book.genre}</p>
-      <p>Summary: {book.summary}</p>
+      <p>Written by Author: {book.author}</p>
       <img src={book.cover_image_url} alt={book.title} />
+
+      <h2>Book Details</h2>
+      <p>Genre: {book.genre || "Unavailable"}</p>
+      <p>Year: {book.year || "Unavailable"}</p>
+      <p>Pages: {book.pages || "Unavailable"}</p>
+      <p>Publisher: {book.publisher || "Unavailable"}</p>
+      <p>Description: {book.description || "Unavailable"}</p>
 
       <h2>Reviews</h2>
       <ul>
-        {book.reviews.map((review) => (
-          <li key={review.id}>
-            <p>Rating: {review.rating}</p>
-            <p>{review.comment}</p>
-            <p>By: {review.user.username}</p>
-          </li>
-        ))}
+        {book.reviews && book.reviews.length > 0 ? (
+          book.reviews.map((review) => (
+            <li key={review.id}>
+              <p>Rating: {review.rating}</p>
+              <p>{review.comment}</p>
+              <p>By: {review.user.username}</p>
+            </li>
+          ))
+        ) : (
+          <li>No reviews available.</li>
+        )}
       </ul>
 
       <ReviewForm bookId={book.id} />

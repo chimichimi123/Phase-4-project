@@ -1,32 +1,35 @@
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
-from .models import User, Book, Review, UserBook, BookDetails
+from marshmallow import Schema, fields, validate
 
-class UserSchema(SQLAlchemyAutoSchema):
-    class Meta:
-        model = User
-        include_relationships = True
-        load_instance = True
+class BookSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    title = fields.String(required=True)
+    author = fields.String(required=True)
+    summary = fields.String()
+    cover_image_url = fields.String()
 
-class BookSchema(SQLAlchemyAutoSchema):
-    class Meta:
-        model = Book
-        include_relationships = True
-        load_instance = True
+    # Optional: You can add validation to fields
+    title = fields.String(required=True, validate=validate.Length(min=1))
+    author = fields.String(required=True, validate=validate.Length(min=1))
+    summary = fields.String(validate=validate.Length(max=500))
+    cover_image_url = fields.String(validate=validate.URL())
 
-class ReviewSchema(SQLAlchemyAutoSchema):
-    class Meta:
-        model = Review
-        include_relationships = True
-        load_instance = True
+class ReviewSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    book_id = fields.Integer()
+    rating = fields.Integer(validate=validate.Range(min=1, max=5))
+    comment = fields.String()
+    user_id = fields.Integer()
 
-class UserBookSchema(SQLAlchemyAutoSchema):
-    class Meta:
-        model = UserBook
-        include_relationships = True
-        load_instance = True
-
-class BookDetailsSchema(SQLAlchemyAutoSchema):
-    class Meta:
-        model = BookDetails
-        include_relationships = True
-        load_instance = True
+class UserSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    username = fields.String(required=True)
+    email = fields.Email(required=True)
+    
+class BookDetailsSchema(Schema):
+    id = fields.Integer(dump_only=True)
+    book_id = fields.Integer()
+    genre = fields.String()
+    year = fields.Integer()
+    pages = fields.Integer()
+    publisher = fields.String()
+    description = fields.String()

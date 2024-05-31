@@ -8,7 +8,8 @@ from faker import Faker
 # Local imports
 from app import app
 from config import db
-from models import Book, BookDetails
+from models import Book, BookDetails, User
+from flask_bcrypt import generate_password_hash
 
 if __name__ == '__main__':
     fake = Faker()
@@ -47,7 +48,27 @@ books = [
     },
     
 ]
+
+def get_or_create(session, model, **kwargs):
+    instance = session.query(model).filter_by(**kwargs).first()
+    if instance:
+        return instance
+    else:
+        instance = model(**kwargs)
+        session.add(instance)
+        session.commit()
+        return instance
+    
 with app.app_context():
+    hashed_password = generate_password_hash('password').decode('utf-8')
+    
+    
+    user = User(
+        username='username',
+        email='user@example.com',
+        password_hash=hashed_password
+    )
+    
     for book_data in books:
         book = Book(
             title=book_data['title'],
@@ -58,15 +79,16 @@ with app.app_context():
         db.session.add(book)
         db.session.flush()
 
-        details_data = book_data.get('details', {})
-        details = BookDetails(
-            book_id=book.id,
-            genre=details_data.get('genre'),
-            year=details_data.get('year'),
-            pages=details_data.get('pages'),
-            publisher=details_data.get('publisher'),
-            description=details_data.get('description')
-        )
-        db.session.add(details)
+        details_data = book_data.get('details', {})  # Ensure 'details' key exists
+        if details_data:
+            details = BookDetails(
+                book_id=book.id,
+                genre=details_data.get('genre'),
+                year=details_data.get('year'),
+                pages=details_data.get('pages'),
+                publisher=details_data.get('publisher'),
+                description=details_data.get('description')
+            )
+            db.session.add(details)
 
     db.session.commit()

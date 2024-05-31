@@ -5,7 +5,7 @@ function BookList() {
   const [books, setBooks] = useState([]);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:5000/books")
+    fetch("/books")
       .then((response) => response.json())
       .then((data) => setBooks(data));
   }, []);
@@ -16,11 +16,12 @@ function BookList() {
       <ul>
         {books.map((book) => (
           <li key={book.id}>
-            {/* bookdetails page link */}
-            <Link to={`/book/${book.id}`}>
+            <Link to={`/bookdetails/${book.id}`}>
               <h3>{book.title}</h3>
               <p>Author: {book.author}</p>
-              {/* additional book details */}
+              <p>Genre: {book.genre}</p>
+              <p>Summary: {book.summary}</p>
+              <img src={book.cover_image_url} alt={book.title} />
             </Link>
           </li>
         ))}
