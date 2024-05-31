@@ -19,7 +19,7 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post("/api/login", formData);
+      const response = await axios.post("/login", formData);
       history.push("/");
     } catch (error) {
       console.error("Login failed:", error);

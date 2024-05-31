@@ -5,7 +5,6 @@ from config import db, DATABASE_URI
 from routes import setup_routes
 
 def create_app():
-    """Initialize the core application."""
     app = Flask(__name__)
     app.secret_key = 'super secret key'
 
@@ -15,7 +14,6 @@ def create_app():
 
     db.init_app(app)
 
-    # Initialize routes
     setup_routes(app)
 
     return app
