@@ -4,6 +4,10 @@ from models import User, Book, Review, BookDetails
 from flask_bcrypt import generate_password_hash
 from werkzeug.security import check_password_hash
 from config import db
+import jwt
+from datetime import datetime, timedelta
+
+SECRET_KEY = 'super secret key'
 
 class BookResource(Resource):
     def get(self, id=None):
@@ -104,18 +108,26 @@ class BookDetailsResource(Resource):
         db.session.commit()
         return '', 204
     
+    
 class Login(Resource):
     def post(self):
         data = request.get_json()
         user = User.query.filter_by(username=data['username']).first()
 
+        # Check if user exists and password is correct
         if user and check_password_hash(user.password_hash, data['password']):
-            session['user_id'] = user.id
-            return jsonify(user.to_dict()), 200
+            # Generate JWT token
+            token_payload = {
+                'user_id': user.id,
+                'exp': datetime.utcnow() + timedelta(days=1)
+            }
+            token = jwt.encode(token_payload, SECRET_KEY, algorithm='HS256')
 
+            # Return token to the client
+            return jsonify({'token': token}), 200
+
+        # Return error message for invalid credentials
         return {"message": "Invalid username or password"}, 401
-
-
 
 
 class Logout(Resource):
